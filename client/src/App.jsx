@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CartView from './components/CartView';
+import CategoryCarousel from './components/CategoryCarousel';
 import LoginView from './components/LoginView';
 import { useCart } from './context/useCart';
 import './App.css';
@@ -15,16 +16,17 @@ import { Store, Heart, Package, ShoppingBag, Settings, PlusCircle, List, BarChar
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const getRoleFromToken = (t) => {
-  if (!t) return null;
-  try {
-    const payload = JSON.parse(atob(t.split('.')[1]));
-    return payload.role;
-  } catch (e) {
-    return null;
-  }
-};
-const [userRole, setUserRole] = useState(getRoleFromToken(localStorage.getItem('token')));
-const [activeView, setActiveView] = useState('shop');
+    if (!t) return null;
+    try {
+      const payload = JSON.parse(atob(t.split('.')[1]));
+      return payload.role;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const [userRole, setUserRole] = useState(getRoleFromToken(localStorage.getItem('token')));
+  const [activeView, setActiveView] = useState('shop');
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -35,40 +37,40 @@ const [activeView, setActiveView] = useState('shop');
   const [wishlistIds, setWishlistIds] = useState([]);
   const [showSellerMenu, setShowSellerMenu] = useState(false);
 
-const fetchWishlistIds = () => {
-  const t = localStorage.getItem('token');
-  if (!t) return;
-  fetch('https://ecommerce-platform-09ag.onrender.com/api/wishlist', {
-    headers: { Authorization: `Bearer ${t}` },
-  })
-    .then((res) => res.json())
-    .then((data) => setWishlistIds(Array.isArray(data) ? data.map((p) => p.id) : []))
-    .catch(() => {});
-};
+  const fetchWishlistIds = () => {
+    const t = localStorage.getItem('token');
+    if (!t) return;
+    fetch('https://ecommerce-platform-09ag.onrender.com/api/wishlist', {
+      headers: { Authorization: `Bearer ${t}` },
+    })
+      .then((res) => res.json())
+      .then((data) => setWishlistIds(Array.isArray(data) ? data.map((p) => p.id) : []))
+      .catch(() => {});
+  };
 
-const toggleWishlist = async (productId) => {
-  const t = localStorage.getItem('token');
-  const isSaved = wishlistIds.includes(productId);
-  try {
-    if (isSaved) {
-      await fetch(`https://ecommerce-platform-09ag.onrender.com/api/wishlist/${productId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${t}` },
-      });
-    } else {
-      await fetch('https://ecommerce-platform-09ag.onrender.com/api/wishlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
-        body: JSON.stringify({ productId }),
-      });
+  const toggleWishlist = async (productId) => {
+    const t = localStorage.getItem('token');
+    const isSaved = wishlistIds.includes(productId);
+    try {
+      if (isSaved) {
+        await fetch(`https://ecommerce-platform-09ag.onrender.com/api/wishlist/${productId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${t}` },
+        });
+      } else {
+        await fetch('https://ecommerce-platform-09ag.onrender.com/api/wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+          body: JSON.stringify({ productId }),
+        });
+      }
+      fetchWishlistIds();
+    } catch (err) {
+      // silent fail
     }
-    fetchWishlistIds();
-  } catch (err) {
-    // silent fail
-  }
-};
+  };
 
-useEffect(() => {
+  useEffect(() => {
     if (token) {
       fetch('https://ecommerce-platform-09ag.onrender.com/api/products')
         .then((res) => {
@@ -85,79 +87,78 @@ useEffect(() => {
         });
     }
   }, [token]);
-useEffect(() => {
-  fetchWishlistIds();
-}, [token]);
 
-const categories = ['all', ...new Set(products.map((p) => p.category).filter(Boolean))];
+  useEffect(() => {
+    fetchWishlistIds();
+  }, [token]);
 
-const isBrowsing = !searchTerm && selectedCategory === 'all';
+  const categories = ['all', ...new Set(products.map((p) => p.category).filter(Boolean))];
+  const isBrowsing = !searchTerm && selectedCategory === 'all';
 
-const renderProductCard = (product) => {
-  const isSaved = wishlistIds.includes(product.id);
-  return (
-    <div
-      key={product.id}
-      className="card"
-      style={{ padding: '15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', overflow: 'hidden', position: 'relative' }}
-      onClick={() => setSelectedProduct(product)}
-    >
-      <button
-        onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }}
-        style={{
-          position: 'absolute', top: '6px', right: '6px', background: 'rgba(255,255,255,0.85)',
-          border: 'none', borderRadius: '50%', width: '28px', height: '28px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', zIndex: 1, boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
-        }}
+  const renderProductCard = (product) => {
+    const isSaved = wishlistIds.includes(product.id);
+    return (
+      <div
+        key={product.id}
+        className="card"
+        style={{ padding: '15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', overflow: 'hidden', position: 'relative' }}
+        onClick={() => setSelectedProduct(product)}
       >
-        <Heart size={16} color={isSaved ? 'var(--color-red)' : '#888'} fill={isSaved ? 'var(--color-red)' : 'none'} />
-      </button>
-
-      <div>
-        {product.image_url && (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '4px', marginBottom: '10px', border: '2px solid var(--color-ink)' }}
-          />
-        )}
-        <h3 style={{
-          margin: '0 0 6px 0', fontSize: '16px', lineHeight: '1.2',
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
-        }}>{product.name}</h3>
-        <p style={{
-          margin: '0 0 4px 0', fontSize: '0.7rem', color: '#666',
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
-        }}>{product.description}</p>
-      </div>
-      <div>
-        <p style={{ fontWeight: 'bold', margin: '6px 0', fontSize: '16px', color: 'var(--color-green)' }}>
-          KSh {product.price}
-        </p>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="btn btn-primary" style={{ flex: 1 }}>
-            Add to Cart
-          </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }}
+          style={{
+            position: 'absolute', top: '6px', right: '6px', background: 'rgba(255,255,255,0.85)',
+            border: 'none', borderRadius: '50%', width: '28px', height: '28px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', zIndex: 5, boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+          }}
+        >
+          <Heart size={16} color={isSaved ? 'var(--color-red)' : '#888'} fill={isSaved ? 'var(--color-red)' : 'none'} />
+        </button>
+        <div>
+          {product.image_url && (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '4px', marginBottom: '10px', border: '2px solid var(--color-ink)' }}
+            />
+          )}
+          <h3 style={{
+            margin: '0 0 6px 0', fontSize: '16px', lineHeight: '1.2',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
+          }}>{product.name}</h3>
+          <p style={{
+            margin: '0 0 4px 0', fontSize: '0.7rem', color: '#666',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
+          }}>{product.description}</p>
+        </div>
+        <div>
+          <p style={{ fontWeight: 'bold', margin: '6px 0', fontSize: '16px', color: 'var(--color-green)' }}>
+            KSh {product.price}
+          </p>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="btn btn-primary" style={{ flex: 1 }}>
+              Add to Cart
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-const productsByCategory = categories
-  .filter((cat) => cat !== 'all')
-  .map((cat) => ({
-    category: cat,
-    items: products.filter((p) => p.category === cat),
-  }))
-  .filter((group) => group.items.length > 0);
+  const productsByCategory = categories
+    .filter((cat) => cat !== 'all')
+    .map((cat) => ({
+      category: cat,
+      items: products.filter((p) => p.category === cat),
+    }))
+    .filter((group) => group.items.length > 0);
 
-const filteredProducts = products.filter((p) => {
-  const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-  const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-  return matchesSearch && matchesCategory;
-});
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -166,10 +167,10 @@ const filteredProducts = products.filter((p) => {
 
   if (!token) {
     return <LoginView onLoginSuccess={() => {
-  const newToken = localStorage.getItem('token');
-  setToken(newToken);
-  setUserRole(getRoleFromToken(newToken));
-}} />;
+      const newToken = localStorage.getItem('token');
+      setToken(newToken);
+      setUserRole(getRoleFromToken(newToken));
+    }} />;
   }
 
   return (
@@ -185,139 +186,135 @@ const filteredProducts = products.filter((p) => {
       </div>
 
       <div className="card" style={{ padding: '10px 15px', fontWeight: 'bold', marginBottom: '20px' }}>
-        🛒 Cart Items: {cart.reduce((total, item) => total + item.quantity, 0)}
+        Cart Items: {cart.reduce((total, item) => total + item.quantity, 0)}
       </div>
 
       {loading && <p>Loading products from backend...</p>}
-      {error && <p style={{ color: 'var(--color-red)' }}>Error: {error}</p>}
+      {error && <p style={{ color: 'var(--color-red)' }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-  <input
-    type="text"
-    placeholder="Search products..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    style={{ flex: 2, minWidth: '150px', padding: '10px', border: '2px solid var(--color-ink)', borderRadius: '6px' }}
-  />
-  <select
-    value={selectedCategory}
-    onChange={(e) => setSelectedCategory(e.target.value)}
-    style={{ flex: 1, minWidth: '120px', padding: '10px', border: '2px solid var(--color-ink)', borderRadius: '6px' }}
-  >
-    {categories.map((cat) => (
-      <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
-    ))}
-  </select>
-</div>
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ flex: 2, minWidth: '150px', padding: '10px', border: '2px solid var(--color-ink)', borderRadius: '6px' }}
+        />
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          style={{ flex: 1, minWidth: '120px', padding: '10px', border: '2px solid var(--color-ink)', borderRadius: '6px' }}
+        >
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
+          ))}
+        </select>
+      </div>
 
-{filteredProducts.length === 0 && !loading && (
-  <div style={{ textAlign: 'center', padding: '30px 15px', border: '2px dashed var(--color-ink)', borderRadius: '8px' }}>
-    <p style={{ fontSize: '32px', margin: '0 0 10px 0' }}>🔍</p>
-    <p style={{ fontWeight: 'bold', margin: '0 0 5px 0' }}>No matches found</p>
-    <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Try a different search term or category.</p>
-  </div>
-)}
+      {filteredProducts.length === 0 && !loading && (
+        <div style={{ textAlign: 'center', padding: '30px 15px', border: '2px dashed var(--color-ink)', borderRadius: '8px' }}>
+          <p style={{ fontWeight: 'bold', margin: '0 0 5px 0' }}>No matches found</p>
+          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Try a different search term or category.</p>
+        </div>
+      )}
 
-{isBrowsing ? (
-      <>
-        {productsByCategory.map((group) => (
-          <div key={group.category} style={{ marginBottom: '25px' }}>
-            <h2 style={{ fontSize: '1.1rem', marginBottom: '10px', paddingBottom: '6px', borderBottom: '3px solid var(--color-marigold)' }}>
-              {group.category}
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 220px))', gap: '20px' }}>
-              {group.items.map((product) => renderProductCard(product))}
+      {isBrowsing && <CategoryCarousel products={products} />}
+
+      {isBrowsing ? (
+        <div>
+          {productsByCategory.map((group) => (
+            <div key={group.category} style={{ marginBottom: '25px' }}>
+              <h2 style={{ fontSize: '1.1rem', marginBottom: '10px', paddingBottom: '6px', borderBottom: '3px solid var(--color-marigold)' }}>
+                {group.category}
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 220px))', gap: '20px' }}>
+                {group.items.map((product) => renderProductCard(product))}
+              </div>
             </div>
-          </div>
-        ))}
-      </>
-    ) : (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 220px))', gap: '20px' }}>
-        {filteredProducts.map((product) => renderProductCard(product))}
-      </div>
-    )}
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 220px))', gap: '20px' }}>
+          {filteredProducts.map((product) => renderProductCard(product))}
+        </div>
+      )}
 
-    <div style={{
-    position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
-  display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-  background: '#fff', borderTop: '3px solid var(--color-ink)',
-  boxShadow: '0 -2px 0px var(--color-ink)', padding: '8px 0'
-}}>
-  <button onClick={() => setActiveView('shop')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'shop' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}>
-    <Store size={20} />
-    <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Shop</span>
-  </button>
-  <button onClick={() => setActiveView('wishlist')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'wishlist' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}>
-    <Heart size={20} />
-    <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Wishlist</span>
-  </button>
-  <button onClick={() => setActiveView('orders')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'orders' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}>
-    <Package size={20} />
-    <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Orders</span>
-  </button>
-  {(userRole === 'seller' || userRole === 'admin') && (
-      <button
-        onClick={() => setShowSellerMenu((prev) => !prev)}
-        style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: (activeView === 'my-products' || activeView === 'add-product' || activeView === 'analytics') ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}
-      >
-        <ShoppingBag size={20} />
-        <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Seller</span>
-      </button>
-    )}
-     
-  {userRole === 'admin' && (
-    <button onClick={() => setActiveView('admin')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'admin' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}>
-      <Settings size={20} />
-      <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Admin</span>
-    </button>
-    )}
-    </div>
-
-    {showSellerMenu && (
       <div style={{
-        position: 'fixed', bottom: '58px', left: '50%', transform: 'translateX(calc(-50% + 100px))',
-        zIndex: 1001, background: '#fff', border: '3px solid var(--color-ink)', borderRadius: '30px',
-        boxShadow: '3px 3px 0px var(--color-ink)', display: 'flex', gap: '4px', padding: '6px 10px'
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
+        display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+        background: '#fff', borderTop: '3px solid var(--color-ink)',
+        boxShadow: '0 -2px 6px var(--color-ink)', padding: '8px 0'
       }}>
-        <button onClick={() => { setActiveView('add-product'); setShowSellerMenu(false); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'add-product' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer', padding: '4px 8px' }}>
-          <PlusCircle size={18} />
-          <span style={{ fontSize: '0.6rem', fontWeight: 'bold' }}>Sell</span>
+        <button onClick={() => setActiveView('shop')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'shop' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}>
+          <Store size={20} />
+          <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Shop</span>
         </button>
-        <button onClick={() => { setActiveView('my-products'); setShowSellerMenu(false); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'my-products' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer', padding: '4px 8px' }}>
-          <List size={18} />
-          <span style={{ fontSize: '0.6rem', fontWeight: 'bold' }}>Products</span>
+        <button onClick={() => setActiveView('wishlist')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'wishlist' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}>
+          <Heart size={20} />
+          <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Wishlist</span>
         </button>
-        <button onClick={() => { setActiveView('analytics'); setShowSellerMenu(false); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'analytics' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer', padding: '4px 8px' }}>
-          <BarChart3 size={18} />
-          <span style={{ fontSize: '0.6rem', fontWeight: 'bold' }}>Stats</span>
+        <button onClick={() => setActiveView('orders')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'orders' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}>
+          <Package size={20} />
+          <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Orders</span>
         </button>
+        {(userRole === 'seller' || userRole === 'admin') && (
+          <button onClick={() => setShowSellerMenu((prev) => !prev)} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: (activeView === 'my-products' || activeView === 'add-product' || activeView === 'analytics') ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}>
+            <ShoppingBag size={20} />
+            <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Seller</span>
+          </button>
+        )}
+        {userRole === 'admin' && (
+          <button onClick={() => setActiveView('admin')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'admin' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer' }}>
+            <Settings size={20} />
+            <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>Admin</span>
+          </button>
+        )}
       </div>
-    )}
 
+      {showSellerMenu && (
+        <div style={{
+          position: 'fixed', bottom: '58px', left: '50%', transform: 'translateX(calc(-50% + 100px))',
+          zIndex: 1001, background: '#fff', border: '3px solid var(--color-ink)', borderRadius: '30px',
+          boxShadow: '3px 3px 0px var(--color-ink)', display: 'flex', gap: '4px', padding: '6px 10px'
+        }}>
+          <button onClick={() => { setActiveView('add-product'); setShowSellerMenu(false); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'add-product' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer', padding: '4px 8px' }}>
+            <PlusCircle size={18} />
+            <span style={{ fontSize: '0.6rem', fontWeight: 'bold' }}>Sell</span>
+          </button>
+          <button onClick={() => { setActiveView('my-products'); setShowSellerMenu(false); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'my-products' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer', padding: '4px 8px' }}>
+            <List size={18} />
+            <span style={{ fontSize: '0.6rem', fontWeight: 'bold' }}>Products</span>
+          </button>
+          <button onClick={() => { setActiveView('analytics'); setShowSellerMenu(false); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', color: activeView === 'analytics' ? 'var(--color-marigold)' : 'var(--color-ink)', cursor: 'pointer', padding: '4px 8px' }}>
+            <BarChart3 size={18} />
+            <span style={{ fontSize: '0.6rem', fontWeight: 'bold' }}>Stats</span>
+          </button>
+        </div>
+      )}
 
       {activeView === 'shop' && selectedProduct && (
-  <ProductDetailView
-    product={selectedProduct}
-    onBack={() => setSelectedProduct(null)}
-    onAddToCart={(p) => { addToCart(p); setSelectedProduct(null); }}
-  />
-)}
-{activeView === 'shop' && !selectedProduct && <CartView />}
+        <ProductDetailView
+          product={selectedProduct}
+          onBack={() => setSelectedProduct(null)}
+          onAddToCart={(p) => { addToCart(p); setSelectedProduct(null); }}
+        />
+      )}
+      {activeView === 'shop' && !selectedProduct && <CartView />}
       {activeView === 'orders' && <MyOrdersView />}
-{activeView === 'add-product' && <AddProductView />}
-{activeView === 'my-products' && <MyProductsView />}
-{activeView === 'analytics' && <AnalyticsView />}
-{activeView === 'admin' && userRole === 'admin' && <AdminView />}
-{activeView === 'wishlist' && <WishlistView addToCart={addToCart} />}
+      {activeView === 'add-product' && <AddProductView />}
+      {activeView === 'my-products' && <MyProductsView />}
+      {activeView === 'analytics' && <AnalyticsView />}
+      {activeView === 'admin' && userRole === 'admin' && <AdminView />}
+      {activeView === 'wishlist' && <WishlistView addToCart={addToCart} />}
 
-    <div style={{ height: '70px' }} />
+      <div style={{ height: '70px' }} />
 
-    <footer style={{ marginTop: '40px', paddingTop: '20px', borderTop: '2px solid var(--color-ink)', textAlign: 'center', fontSize: '13px', color: '#888' }}>
-      <p style={{ margin: '0 0 4px 0' }}>Built by Lerionka</p>
+      <footer style={{ marginTop: '40px', paddingTop: '20px', borderTop: '2px solid var(--color-ink)', textAlign: 'center', fontSize: '13px', color: '#888' }}>
+        <p style={{ margin: '0 0 4px 0' }}>Built by Lerionka</p>
         <p style={{ margin: 0 }}>
           Questions or feedback? <a href="mailto:lerionkareteti@gmail.com" style={{ color: 'var(--color-green)', fontWeight: 'bold' }}>lerionkareteti@gmail.com</a>
         </p>
       </footer>
-  </div>
+    </div>
   );
 }
