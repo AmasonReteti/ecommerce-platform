@@ -1,12 +1,19 @@
 :root {
-  --color-marigold: #F7B32B;
-  --color-green: #0B6E4F;
-  --color-red: #E8491D;
-  --color-ink: #1A1A1A;
-  --color-cream: #FDF8EE;
+  /* Ushirika Marketplace — warm, community-rooted palette */
+  --color-terracotta: #C96E4E;
+  --color-forest: #2F4B3C;
+  --color-cream: #FBF3E7;
+  --color-charcoal: #3A2E2A;
+  --color-honey: #E8A838;
 
-  --font-display: 'Alfa Slab One', cursive;
-  --font-body: 'Work Sans', sans-serif;
+  /* Kept as aliases so existing components using the old names still work */
+  --color-marigold: var(--color-honey);
+  --color-green: var(--color-forest);
+  --color-red: #B3432F;
+  --color-ink: var(--color-charcoal);
+
+  --font-display: 'Poppins', sans-serif;
+  --font-body: 'Nunito Sans', sans-serif;
 }
 
 * {
@@ -17,46 +24,47 @@ body {
   margin: 0;
   background-color: var(--color-cream);
   font-family: var(--font-body);
-  color: var(--color-ink);
+  color: var(--color-charcoal);
 }
 
 h1, h2, h3 {
   font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0px;
-  line-height: 1.2;
+  font-weight: 700;
+  line-height: 1.3;
   margin: 0;
+  color: var(--color-forest);
 }
 
 .btn {
   font-family: var(--font-body);
   font-weight: 700;
-  border: 2.5px solid var(--color-ink);
-  border-radius: 6px;
-  padding: 12px 18px;
+  border: none;
+  border-radius: 24px;
+  padding: 11px 20px;
   cursor: pointer;
-  box-shadow: 3px 3px 0px var(--color-ink);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  box-shadow: 0 2px 6px rgba(58, 46, 42, 0.15);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px var(--color-ink);
+  transform: scale(0.97);
+  box-shadow: 0 1px 3px rgba(58, 46, 42, 0.2);
 }
 
 .btn-primary {
-  background-color: var(--color-marigold);
-  color: var(--color-ink);
+  background-color: var(--color-terracotta);
+  color: #fff;
 }
 
 .btn-secondary {
-  background-color: var(--color-cream);
-  color: var(--color-ink);
+  background-color: #fff;
+  color: var(--color-forest);
+  border: 1.5px solid var(--color-forest);
 }
 
 .card {
-  border: 2.5px solid var(--color-ink);
-  border-radius: 8px;
+  border: none;
+  border-radius: 16px;
   background-color: #ffffff;
-  box-shadow: 4px 4px 0px var(--color-ink);
+  box-shadow: 0 2px 10px rgba(58, 46, 42, 0.08);
 }
