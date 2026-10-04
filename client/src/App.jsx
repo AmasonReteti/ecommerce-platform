@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CartView from './components/CartView';
 import CategoryCarousel from './components/CategoryCarousel';
+import Logo from './components/Logo';
 import LoginView from './components/LoginView';
 import { useCart } from './context/useCart';
 import './App.css';
@@ -177,8 +178,10 @@ export default function App() {
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ fontSize: '28px' }}>My E-Commerce Store</h1>
-          <p style={{ margin: 0, color: '#666' }}>Connected to Live Backend API</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+  <Logo size={36} />
+  <h1 style={{ fontSize: '22px' }}>Ushirika Marketplace</h1>
+</div>
         </div>
         <button onClick={handleLogout} className="btn" style={{ background: 'var(--color-red)', color: '#fff' }}>
           Logout
